@@ -25,12 +25,14 @@ void check_update()
     char choice;
     cout << "Checking for updates... \n";
     _chdir("wget/bin");
+    // send a GET request using wget; the server response will be returned in output.txt
     string cmd = "wget.exe -O update.txt \"http://gabi-api.000webhostapp.com/checkupdate.php?version=" + version_formatted + "\" -q";
     system(cmd.c_str());
     ifstream file("update.txt");
     file >> update_status;
     file.close();
     remove("update.txt");
+    // check server response
     if (update_status == '0') {
         cout << "The application is up to date!\n";
         this_thread::sleep_for(chrono::milliseconds(2000));
@@ -65,10 +67,12 @@ void download_quiz()
     cin >> id;
     _chdir("wget/bin");
     cout << "\nDownloading...\n";
+    // download quiz pack using wget
     string cmd = "wget.exe \"http://gabi-api.000webhostapp.com/get_quiz/" + to_string(id) + "/quiz_data.zip\" -q -nc";
     system(cmd.c_str());
     cout << "Extracting...\n";
     _chdir("../../7z");
+    // extract the downloaded package
     cmd = "7za.exe e ../wget/bin/quiz_data.zip -oextracted";
     system(cmd.c_str());
     _chdir("extracted");
@@ -88,16 +92,19 @@ void upload_results(int score, int questions, int question_number)
         cout << "\nEnter password(if it is the first time choose your password): ";
         cin >> password;
         if (online)
-            _chdir("../..");
+            _chdir("../.."); // change the directory to the correct one if the download_quiz() function was used
         else
             id = 0;
+	// send GET request to the server, uploading the results
         string cmd = "wget.exe -O output.txt \"http://gabi-api.000webhostapp.com/quiz_app_api.php?user=" + user + "&questions=" + to_string(questions) + "&score=" + to_string(score) + "&id=" + to_string(id) + "&pwd=" + password + "\" -q";
         _chdir("wget/bin");
         system(cmd.c_str());
+	// read the ouput file, that contains the server response(whether authentication has succeeded or not)
         ifstream file("output.txt");
         getline(file, status_msg);
         file.close();
         cout << status_msg;
+	// delete unneeded files
         remove("quiz_data.zip");
         remove("output.txt");
         cout << "\nDone.\n";
@@ -115,20 +122,22 @@ string load_question(int question_id, int mode)
     int data_index = 0;
     string file_name = "quiz_data_" + to_string(question_id) + ".dat";
     ifstream file;
-    file.open(file_name);
+    file.open(file_name); // open question file
     if (file.fail())
         cout << "Error opening file! Error code # " << strerror(errno) << "\n";
     else {
         getline(file, data);
         file.close();
-
+        
+	// loop through every character of the file and check for the separator(";") to separate question, options and answer
         for (unsigned int i = 0; i <= data.length(); i++) {
                 if (data[i] != ';')
                     data_processed[data_index] += data[i];
                 else
                     data_index++;
         }
-
+  
+	// return what is requested(question, options and answer respectively)
         if (mode == 1)
             return data_processed[0];
         else if (mode == 2)
@@ -179,11 +188,14 @@ int main()
         cout << "Answer (letter only): ";
         cin >> answer;
         returned_answer = load_question(question_number, 3);
-
+	    
+	        /* Compare every character from the answer returned by the function load_question from the file with user answer;
+		This is done because direct comparation failed, there were some unprintable characters.                        */
 		for (unsigned int i = 0; i <= returned_answer.length(); i++) {
         	if (answer == returned_answer[i])
             score++;
 		}
+	// reached last question, end the quiz
         if (question_number >= n)
             running = false;
     }
