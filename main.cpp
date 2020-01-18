@@ -20,12 +20,12 @@ int id;
 
 void check_update()
 {
-    const string version_formatted = "1.0.1.7";
+    const string version_formatted = "1.0.1.8";
     char update_status;
     char choice;
     cout << "Checking for updates... \n";
     _chdir("wget/bin");
-    // send a GET request using wget; the server response will be returned in output.txt
+    // send a GET request using wget; the server response will be returned in update.txt
     string cmd = "wget.exe -O update.txt \"http://gabi-api.000webhostapp.com/checkupdate.php?version=" + version_formatted + "\" -q";
     system(cmd.c_str());
     ifstream file("update.txt");
@@ -123,12 +123,16 @@ string load_question(int question_id, int mode)
     string file_name = "quiz_data_" + to_string(question_id) + ".dat";
     ifstream file;
     file.open(file_name); // open question file
-    if (file.fail())
-        cout << "Error opening file! Error code # " << strerror(errno) << "\n";
+    if (file.fail()) {
+        system("cls");
+        cout << "Error opening file! " << strerror(errno) << "\n";
+        system("pause");
+        exit(EXIT_FAILURE);
+    }
     else {
         getline(file, data);
         file.close();
-        
+
 	// loop through every character of the file and check for the separator(";") to separate question, options and answer
         for (unsigned int i = 0; i <= data.length(); i++) {
                 if (data[i] != ';')
@@ -136,7 +140,7 @@ string load_question(int question_id, int mode)
                 else
                     data_index++;
         }
-  
+
 	// return what is requested(question, options and answer respectively)
         if (mode == 1)
             return data_processed[0];
@@ -155,7 +159,7 @@ int main()
     const string bar = "-----------------------------------------\n";
     char answer;
     string returned_answer;
-    const string version = " v1.0.1 build 7";
+    const string version = " v1.0.1 build 8";
     const string svfile_name = "quiz_save.dat";
     unsigned int score = 0;
     unsigned int choice;
@@ -188,12 +192,12 @@ int main()
         cout << "Answer (letter only): ";
         cin >> answer;
         returned_answer = load_question(question_number, 3);
-	    
-	        /* Compare every character from the answer returned by the function load_question from the file with user answer;
+
+        /* Compare every character from the answer returned by the function load_question from the file with user answer;
 		This is done because direct comparation failed, there were some unprintable characters.                        */
 		for (unsigned int i = 0; i <= returned_answer.length(); i++) {
         	if (answer == returned_answer[i])
-            score++;
+                score++;
 		}
 	// reached last question, end the quiz
         if (question_number >= n)
