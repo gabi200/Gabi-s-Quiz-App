@@ -20,13 +20,13 @@ int id;
 
 void check_update()
 {
-    const string version_formatted = "1.0.1.8";
+    const string version_formatted = "1.0.1.9";
     char update_status;
     char choice;
     cout << "Checking for updates... \n";
     _chdir("wget/bin");
     // send a GET request using wget; the server response will be returned in update.txt
-    string cmd = "wget.exe -O update.txt \"http://gabi-api.000webhostapp.com/checkupdate.php?version=" + version_formatted + "\" -q";
+    string cmd = "wget.exe --no-check-certificate -O update.txt \"https://gabi-api.000webhostapp.com/checkupdate.php?version=" + version_formatted + "\" -q";
     system(cmd.c_str());
     ifstream file("update.txt");
     file >> update_status;
@@ -44,7 +44,7 @@ void check_update()
         cin >> choice;
         if (choice == 'y' || choice == 'Y') {
             cout << "Downloading update...\n";
-            cmd = "wget.exe \"http://gabi-api.000webhostapp.com/windows-client.zip\"";
+            cmd = "wget.exe --no-check-certificate \"https://gabi-api.000webhostapp.com/windows-client.zip\"";
             system(cmd.c_str());
             rename("windows-client.zip", "../../windows-client-update.zip");
             remove("windows-client.zip");
@@ -68,7 +68,7 @@ void download_quiz()
     _chdir("wget/bin");
     cout << "\nDownloading...\n";
     // download quiz pack using wget
-    string cmd = "wget.exe \"http://gabi-api.000webhostapp.com/get_quiz/" + to_string(id) + "/quiz_data.zip\" -q -nc";
+    string cmd = "wget.exe --no-check-certificate \"https://gabi-api.000webhostapp.com/get_quiz/" + to_string(id) + "/quiz_data.zip\" -q -nc";
     system(cmd.c_str());
     cout << "Extracting...\n";
     _chdir("../../7z");
@@ -96,7 +96,7 @@ void upload_results(int score, int questions, int question_number)
         else
             id = 0;
 	// send GET request to the server, uploading the results
-        string cmd = "wget.exe -O output.txt \"http://gabi-api.000webhostapp.com/quiz_app_api.php?user=" + user + "&questions=" + to_string(questions) + "&score=" + to_string(score) + "&id=" + to_string(id) + "&pwd=" + password + "\" -q";
+        string cmd = "wget.exe --no-check-certificate -O output.txt \"https://gabi-api.000webhostapp.com/quiz_app_api.php?user=" + user + "&questions=" + to_string(questions) + "&score=" + to_string(score) + "&id=" + to_string(id) + "&pwd=" + password + "\" -q";
         _chdir("wget/bin");
         system(cmd.c_str());
 	// read the ouput file, that contains the server response(whether authentication has succeeded or not)
@@ -159,7 +159,7 @@ int main()
     const string bar = "-----------------------------------------\n";
     char answer;
     string returned_answer;
-    const string version = " v1.0.1 build 8";
+    const string version = " v1.0.1 build 9";
     const string svfile_name = "quiz_save.dat";
     unsigned int score = 0;
     unsigned int choice;
@@ -174,11 +174,18 @@ int main()
     cout << bar;
     cout << "Select an option: ";
     cin >> choice;
-    cout << "Enter the number of questions: ";
-    cin >> n;
 
-    if (choice == 1)
-        download_quiz();
+    if (choice == 1 || choice == 2) {
+        cout << "Enter the number of questions: ";
+        cin >> n;
+        if (choice == 1)
+            download_quiz();
+    }
+    else {
+        cout << "Invalid option selected!\n";
+        system("pause");
+        exit(EXIT_FAILURE);
+    }
 
     while (running) {
         system("cls");
