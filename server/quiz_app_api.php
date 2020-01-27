@@ -18,7 +18,7 @@ if (file_exists($_GET["user"])) {
     $file1 = fopen($_GET["user"], "r");
     if (fgets($file1) == hash("sha256", $_GET["pwd"])){
         upload();
-        echo "Authentication sucessfully!";
+        echo "Authentication sucessful!";
     }
     else {
         echo "Authentication failed: wrong password!";
